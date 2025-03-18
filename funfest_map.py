@@ -37,13 +37,13 @@ def funfest_parse_message(self, data_d, player):
             if tile and tile.is_number_sequence_tile:
                 if chat_text.isdigit():
                     number = int(chat_text)
-                    if 1 <= number <= 4:
+                    if 1 <= number <= 8:
                         tile.store_number(number)
                         messages.append(ServerMessage(player, f"You entered {number}; tile {tile_id} sequence: {tile.get_stored_sequence()}"))
                     else:
-                        messages.append(ServerMessage(player, "Invalid. Enter 1-4."))
+                        messages.append(ServerMessage(player, "Invalid. Enter 1-8."))
                 else:
-                    messages.append(ServerMessage(player, "Enter a valid number (1-4)."))
+                    messages.append(ServerMessage(player, "Enter a valid number (1-8)."))
             else:
                 
                 original_parse_message(self, data_d, player)
