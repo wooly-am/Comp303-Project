@@ -104,26 +104,12 @@ class FunFestHouse(Map):
 
             
             if tile.is_number_sequence_tile:
-                messages.append(ServerMessage(player, "Enter a number (1-4) in chat."))
+                messages.append(ServerMessage(player, "Enter a number (1-8) in chat."))
 
                 
         return messages
 
-    def select_menu_option(self, player: "HumanPlayer", option: str) -> list[Message]:
-        """
-        Handle the numeric selection from the user for number-sequence tiles.
-        """
-        
-        tile_id, tile, _ = self.tile_map.check_player_position(player)
-        if tile and tile.is_number_sequence_tile:
-            
-            if option in ["1","2","3","4"]:
-                tile.store_number(int(option))
-                return [ServerMessage(player, f"Stored {option} in tile {tile_id}. Current sequence: {tile.get_stored_sequence()}")]
-            else:
-                return [ServerMessage(player, "Invalid input (must be 1-4).")]
-        
-        return [ServerMessage(player, "You're not on a number-sequence tile.")]
+    
 
     
 
