@@ -101,12 +101,12 @@ class TileMap:
                 matched_tile = flyweight_tile
         old_tile = self.current_tile_for_player.get(player.get_name(), None)
         if old_tile is not None and old_tile != matched_tile:
-            # ✅ If old tile was a number-sequence tile, clear it
+            # reset the tile sequence
             if old_tile.is_number_sequence_tile:
                 old_tile.stored_sequence = []  # or old_tile.clear_stored_sequence()
                 print(f"DEBUG: Reset sequence for old tile {old_tile.tile_id} because player left it.")
 
-        # ✅ Update the dictionary with the new tile
+        # update
         self.current_tile_for_player[player.get_name()] = matched_tile
 
 
