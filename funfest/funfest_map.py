@@ -6,7 +6,7 @@ from maps.map_helper import fill_area
 from tileMap import TileMap
 from Player import Player, HumanPlayer
 from tiles.map_objects import Computer
-from command import MenuCommand
+from drugfest.instrument_command import *
 from server_local import ChatBackend
 from queue import Queue
 
@@ -43,7 +43,9 @@ def funfest_parse_message(self, data_d, player):
                     else:
                         messages.append(ServerMessage(player, "Invalid. Enter 1-8."))
                 else:
-                    messages.append(ServerMessage(player, "Enter a valid number (1-8)."))
+                    ## instrument command will handle if the text is not a digit, checking for commands like clear, etc
+                    messages.append(InstrumentCommand().execute(player, self, data_d))
+                    #messages.append(ServerMessage(player, "Enter a valid number (1-8)."))
             else:
                 
                 original_parse_message(self, data_d, player)
