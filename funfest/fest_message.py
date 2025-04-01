@@ -1,18 +1,11 @@
 from abc import abstractmethod, ABC
 import wave
+from typing import Dict, Any
+
 from message import *
 
 FRAMERATE = 44100
 SAMPLE_LENGTH = FRAMERATE * 2
-
-## can be overridden in case we decide to do theme changes.
-def get_timed_sequence(num) -> []:
-     if num & 2:
-         return [88200 // num] * num
-     else:
-         temp = [44100 / 4] * num
-         temp.append(11025 * (8 - num))
-         return temp
 
 
 class FestSubMessage(ABC):
@@ -21,53 +14,42 @@ class FestSubMessage(ABC):
     def get_id(self):
         pass
 
-    def parse(self):
-        pass
+    ## wish we could use this, alas json is fickle. def parse(self) -> str:
 
 class LoopMessage(FestSubMessage):
 
-    def __init__(self, path, id):
-        self.__tile_id = id
+    def __init__(self, path: str, tile_id: int):
+        self.__tile_id = tile_id
         self.__path = path
 
     def get_id(self):
         return self.__tile_id
 
-    def parse(self):
-        pass
+    def get_data(self)-> dict[str:str]:
+        return "loop," + str(self.__tile_id) + "," + self.__path
+            ## must be a string, so will have to later break it up
+
 
 class InstrumentMessage(FestSubMessage):
-    def __init__(self, path, id, sequence):
+    def __init__(self, path, tile_id, sequence):
         self.__path = path
         self.sequence = sequence
-        self.__tile_id = id
+        self.__tile_id = tile_id
 
     def get_id(self):
         return self.__tile_id
 
-    def parse(self):
-        timed_sequence = get_timed_sequence(self.sequence.length)
-
-        with wave.open(self.__path, "rb") as sample, wave.open(self.id, "wb") as output:
-            output.setnchannels(1)
-            output.setsampwidth(2)
-            output.setframerate(FRAMERATE)
-
-            for i in timed_sequence.length:
-                sample.setpos((2 * FRAMERATE * (self.sequence[i] - 1)))
-                output.writeframes(sample.readframes(timed_sequence[i]))
-
-            sample.close()
-            output.close()
+    def get_data(self)-> dict[str:str]:
+        return "instrument," + str(self.__tile_id) + "," + self.__path + "," + str(self.sequence)
 
 
 
 ## hard-coded backing track
 
-ambient = LoopMessage("backing_track.wav", -1)
+ambient = LoopMessage("../resources/sound/fest/backing_track.wav", -1)
 
 
-class FestMessage(Message):
+class FestMessage(Message, SenderInterface):
 
     #def __init__(self):
     #    self.__messages = []
@@ -76,26 +58,59 @@ class FestMessage(Message):
     #def append(self, message_data: FestSubMessage):
     #    return
 
-    def __init__(self, sender: SenderInterface, recipient: RecipientInterface):
-        super().__init__(sender, recipient)
+    def __init__(self, recipient: RecipientInterface):
+        super().__init__(self, recipient)
         ## alternate data structures:
         ## heap, hashmap (for checking)
         ## Composite had two functions: check if there has been a change, add/remove value,
-        self.__children = {}
+        self.__children = []
         self.__length = 0
         self.dirty = False
 
         self.add(ambient)
 
+    def __str__(self):
+        ## add more to aid debugging
+        return str(len(self.__children))
+
+    def get_name(self) -> Literal['***SERVER***']:
+        return "***SERVER***"
+
+    def _get_data(self) -> dict[str, str]:
+        print("We're getting that data mfer")
+        temp = {"len": self.__length, "classname": "FestMessage"}
+
+        ## init iterator
+        i = 0
+
+        for submessage in self.__children:
+            # message entries have to be easily accessed, e.g. sequentially in sound combiner.
+            # however they are not stored that way in fest_message
+
+            temp[str(i)] = self.__children[submessage.get_id()].get_data()
+            print(temp[str(i)])
+            i+=1
+        return temp
+
+    def add_recipient(self, recipient: RecipientInterface) -> Message:
+        copy = FestMessage(recipient)
+        ## I lowkey don't care if this means children can be changed.
+        copy.__children = self.__children
+        copy.__length = self.__length
+
+        return copy
+
+
     def length(self) -> int:
         return self.__length
 
-    def dirty(self):
+    def make_dirty(self):
         self.dirty = True
 
     def add(self, child: FestSubMessage):
         self.dirty = True
-        self.__children[child.get_id()] = child
+        self.__children.append(child)
+        self.__length += 1
 
     def remove(self, child):
         self.dirty = True
@@ -106,14 +121,14 @@ class FestMessage(Message):
         for key in self:
             self.remove(key)
 
-    def send_message(self):
+    #def send_message(self):
         ## this should maybe go
-        if self.dirty:
-            new_message = FestMessage()
-            for child in self.__children:
-                new_message.add(child.__data.get_message_data())
-                ## data is a fest submessage.
-            self.dirty = False
+        #if self.dirty:
+        #    new_message = FestMessage()
+        #    for child in self.__children:
+        #        new_message.add(child.__data.get_message_data())
+       #         ## data is a fest submessage.
+        #    self.dirty = False
 
     def __iter__(self):
         self.count = 0

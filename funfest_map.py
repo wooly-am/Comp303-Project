@@ -93,11 +93,16 @@ class FunFestHouse(Map):
         objects: list[tuple[MapObject, Coord]] = []
         door = Door('int_entrance', linked_room="Trottier Town")
         objects.append((door, Coord(roomHeight - 1, (roomWidth // 2) - 1)))
-        background = MapObject('tile/background/black', False, 2)
+
+        background = MapObject('tile/background/black', False, 5)
         for x in range(roomWidth):
             for y in range(roomHeight):
                 if not ((((roomWidth // 2) - 2 <= x <= (roomWidth // 2) + 1) and (roomWidth - 10 <= y <= roomHeight)) or ((10 <= x <= roomWidth - 11) and (10 <= y <= roomWidth - 11))):
                     objects.append((background, Coord(y,x)))
+
+        ## background imagery:
+        objects.append((MapObject("fest-foreground", True, 0), Coord(23,3)))
+
         return objects
 
     def update(self):
