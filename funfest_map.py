@@ -1,145 +1,172 @@
-from coord import Coord
-from Player import Player
-from tiles.base import MapObject
-from message import Message
-from message import GridMessage
+from coord import Rect
 from funfest.fest_message import *
+from maps.base import Map
+from tiles.base import MapObject
+from tiles.map_objects import *
+from maps.map_helper import fill_area
+from tileMap import TileMap, SOUND_FILEPATHS
+from Player import Player, HumanPlayer
+from tiles.map_objects import Computer
+from funfest.instrument_command import *
+from server_local import ChatBackend
+from queue import Queue
 
-SOUND_FILEPATHS = [
-    "fest/arp1.wav", "fest/arp1.wav", "fest/arp1.wav", "fest/arp1.wav",
-    "fest/arp1.wav",
-    "fest/backing_track.wav",
-    "fest/chorus.wav",
-    "fest/clarinet.wav",
-    "fest/drum1.wav",
-    "fest/drums2.wav",
-    "fest/drums3.wav",
-    "fest/guitar1.wav",
-    "fest/harp1.wav",
-    "fest/idkwhatthisis1.wav",
-    "fest/drum1.wav",
-    "fest/synth1.wav",
+DIRECTORY = [
+    "/fest/backing_track.wav"
 ]
 
-class FlyweightTile:
-    """ Flyweight class representing an abstract tile defined by coordinate boundaries. """
-    _instances = {}  # Dictionary to store shared FlyweightTile instances
+# multiple of 2!!:
+roomWidth = 36
+roomHeight = 40
+original_parse_message = ChatBackend._ChatBackend__parse_message
 
-    def __new__(cls, tile_id: int, top_left: tuple[int, int], bottom_right: tuple[int, int],sound_path: str=None,is_number_sequence_tile: bool = False):
-        """ Create or return an existing FlyweightTile instance. """
-        # Use the tile_id and coordinates as the key
-        key = (tile_id, top_left, bottom_right)
-        
-        # Check if the FlyweightTile already exists
-        if key not in cls._instances:
-            # Create a new FlyweightTile instance
-            instance = super().__new__(cls)
-            instance.tile_id = tile_id
-            instance.top_left = top_left
-            instance.bottom_right = bottom_right
-            instance.sound_path = sound_path 
-            instance.is_number_sequence_tile = is_number_sequence_tile
-            instance.stored_sequence = [] if is_number_sequence_tile else None
-            cls._instances[key] = instance  # Store the instance
+#@override
+def funfest_parse_message(self, data_d, player):
+    """Custom parse method to read user’s chat input for number-sequence tiles."""
+    print("FunFestHouse override parse_message:", data_d)
+
+    messages = []
+
+    try:
+        if 'text' in data_d:
+            chat_text = data_d['text']
+
+            
+            tile_id, tile, _ = None, None, None
+            current_room = player.get_current_room()
+            if hasattr(current_room, 'tile_map'): 
+                result = current_room.tile_map.check_player_position(player)
+                if result:
+                    tile_id, tile, _ = result
+
+            
+            if tile and tile.is_number_sequence_tile:
+                if chat_text.isdigit():
+                    number = int(chat_text)
+                    if 1 <= number <= 8:
+                        tile.store_number(number)
+                        messages.append(ServerMessage(player, f"You entered {number}; tile {tile_id} sequence: {tile.get_stored_sequence()}"))
+                    else:
+                        messages.append(ServerMessage(player, "Invalid. Enter 1-8."))
+                else:
+                    ## instrument command will handle if the text is not a digit, checking for commands like clear, etc
+                    messages.append(InstrumentCommand().execute(player, self, data_d))
+                    #messages.append(ServerMessage(player, "Enter a valid number (1-8)."))
+            else:
+                
+                original_parse_message(self, data_d, player)
+                return  
+
         else:
-            # Return the existing instance
-            instance = cls._instances[key]
+            
+            original_parse_message(self, data_d, player)
+            return
+
+    except Exception as e:
+        messages = [ServerMessage(player, f"Error in funfest_parse_message: {str(e)}")]
+
+    self._ChatBackend__send_messages_to_recipients(messages)
+
+class FunFestHouse(Map):
+
+    clock_two = False
+
+    def __init__(self) -> None:
+        super().__init__(
+            name="FunFestHouse",
+            description="Project test..",
+            size=(roomHeight, roomWidth),
+            entry_point=Coord(30, 10),
+            background_tile_image='cobblestone',
+            chat_commands=[],
+            
+            
+        )
+        self.placed_objects = []
+        self.tile_map=TileMap(10,10,4)
+        self.active_tiles = FestMessage(self)
+        ChatBackend._ChatBackend__parse_message = funfest_parse_message
+        self.tile_map.add_observer(self.on_tile_activated)
+        self.player_load_queue = []
+    
+    def on_tile_activated(self, tile):
+        if tile.sound_path and tile.get_tile_id() >= 1:
+            self.active_tiles.add(LoopMessage(tile.get_sound_filepath(), tile.get_tile_id()))
+
+    def get_objects(self) -> list[tuple[MapObject, Coord]]:
+        objects: list[tuple[MapObject, Coord]] = []
+        door = Door('int_entrance', linked_room="Trottier Town")
+        objects.append((door, Coord(roomHeight - 1, (roomWidth // 2) - 1)))
+
+        background = MapObject('tile/background/black', False, 5)
+        for x in range(roomWidth):
+            for y in range(roomHeight):
+                if not ((((roomWidth // 2) - 2 <= x <= (roomWidth // 2) + 1) and (roomWidth - 10 <= y <= roomHeight)) or ((10 <= x <= roomWidth - 11) and (10 <= y <= roomWidth - 11))):
+                    objects.append((background, Coord(y,x)))
+
+        ## background imagery:
+        objects.append((MapObject("fest-foreground", True, 0), Coord(23,3)))
+
+        return objects
+
+    def update(self):
+
+        messages = []
+        self.clock_two = not self.clock_two
+
+        ## holy shit this code needs to be cleaned. It just needs to work rn tho.
+        for player in self.get_clients():
+            if player in self.player_load_queue:
+                for path in SOUND_FILEPATHS:
+                    messages.append(SoundMessage(player, path, 0.0))
+
+                messages.append(self.active_tiles.add_recipient(player))
+                self.player_load_queue.remove(player)
+            elif self.active_tiles.dirty and self.clock_two:
+                #print("Sending Fest_message", self.active_tiles)
+                messages.append(self.active_tiles.add_recipient(player))
+            elif self.active_tiles.dirty:
+                #print("Playing sound")
+                messages.append(SoundMessage(player,"fest/output.wav", 0.5))
+        return messages
+
+
+    def add_player(self, player: "Player", entry_point = None) -> None:
+
+        self.active_tiles.make_dirty()
+        self.player_load_queue.append(player)
+
+        Map.add_player(self, player, entry_point)
+
+
+    #@override
+    def move(self, player: "Player", direction_s: str) -> list[Message]:
+        """
+        Move the player, check tile type, and handle number-sequence input.
+        """
         
-        return instance
+        messages = super().move(player, direction_s)
 
-    def get_sound_filepath(self) -> str | None:
-        """ Return the sound filepath for this tile. """
-        return self.sound_path
-    
-    def get_tile_id(self) -> int:
-        """ Return the tile ID. """
-        return self.tile_id
-
-    def store_number(self, number: int):
-        """ Store a number in the tile's sequence if it's a number-sequence tile. """
-        if self.is_number_sequence_tile:
-            self.stored_sequence.append(number)  # Store the number for later use 
-
-    def get_stored_sequence(self):
-        """ Get the stored sequence (only for number-sequence tiles). """
-        return self.stored_sequence if self.is_number_sequence_tile else None
-    
-    def clear_stored_sequence(self):
-        pass
-
-class TileMap:
-    """ A Flyweight tile system where tiles exist only as coordinate ranges. """
-    def __init__(self, start_y: int, start_x: int, tile_size: int = 4):
-        self.tiles: dict[tuple[tuple[int, int], tuple[int, int]], FlyweightTile] = {}  # Store FlyweightTile instances
-        self.tile_size = tile_size
-        self.generate_tiles(start_y, start_x)
-        self.current_tile_for_player: dict[str, FlyweightTile | None] = {}
-        self.observers = []
-    def add_observer(self, callback):
-        self.observers.append(callback)
-
-    def notify_tile_activation(self, tile):
-        print(f"Tile {tile.tile_id} activated")
-        for observer in self.observers:
-            observer(tile)
-
-    def generate_tiles(self, start_y: int, start_x: int):
-        """ Generates a 4x4 grid of abstract tiles and assigns a unique ID (1-16) to each tile. """
-        tile_id = 1  # Unique ID for each 4x4 tile
-        sound_filepaths = [
-            "", "", "", "",
-            "resources/sound/fest/arp1.wav",
-            "resources/sound/fest/yeah.wav",
-            "resources/sound/fest/awful.wav",
-            "resources/sound/fest/clarinet.wav",
-            "resources/sound/fest/replacement.wav",
-            "resources/sound/fest/drums2.wav",
-            "resources/sound/fest/drums3.wav",
-            "resources/sound/fest/guitar1.wav",
-            "resources/sound/fest/harp1.wav",
-            "resources/sound/fest/idkwhatthisis1.wav",
-            "resources/sound/fest/rtm.wav",
-            "resources/sound/fest/synth1.wav",
-        ]
-
-        for row in range(4):  
-            for col in range(4):  
-                top_left = (start_y + row * self.tile_size, start_x + col * self.tile_size)
-                bottom_right = (top_left[0] + self.tile_size - 1, top_left[1] + self.tile_size - 1)
-                sound_path = sound_filepaths[tile_id - 1]
-
-                # Create or retrieve a FlyweightTile instance using the Flyweight pattern
-                is_number_sequence_tile = tile_id in {1, 2, 3, 4}
-                flyweight_tile = FlyweightTile(tile_id, top_left, bottom_right,sound_path,is_number_sequence_tile)
-                self.tiles[(top_left, bottom_right)] = flyweight_tile  # Store the FlyweightTile instance
-
-                tile_id += 1
-
-    def check_player_position(self, player: Player) -> tuple[int | None, list[Message]]:
-        """ Check if the player is inside an abstract tile and return the tile ID and messages. """
-        player_position = player.get_current_position()
-        player_pos_tuple = (player_position.y, player_position.x)  # Convert Coord to tuple
-        tile_id = None
-        sound_path = None
-        matched_tile=None
+        
+        tile_id, tile, _ = self.tile_map.check_player_position(player)
 
 
-        for (top_left, bottom_right), flyweight_tile in self.tiles.items():
-            if (top_left[0] <= player_pos_tuple[0] <= bottom_right[0] and 
-                top_left[1] <= player_pos_tuple[1] <= bottom_right[1]):
-                tile_id = flyweight_tile.get_tile_id()
-                sound_path = flyweight_tile.get_sound_filepath()
-                matched_tile = flyweight_tile
-        old_tile = self.current_tile_for_player.get(player.get_name(), None)
-        if old_tile is not None and old_tile != matched_tile:
-            if old_tile.is_number_sequence_tile:
-                old_tile.stored_sequence = []  
-                print(f"DEBUG: Reset sequence for old tile {old_tile.tile_id} because player left it.")
-
-       
-        self.current_tile_for_player[player.get_name()] = matched_tile
-        if matched_tile is not None:
-            self.notify_tile_activation(matched_tile)
+        if tile_id is not None:
+            messages.append(ServerMessage(player, f"DEBUG: Player {player.get_name()} is in Tile {tile_id}"))
+            self.active_tiles.add(LoopMessage(tile.get_sound_filepath(), tile.get_tile_id()))
 
 
-        return tile_id, matched_tile,sound_path
+            if tile.is_number_sequence_tile:
+                messages.append(ServerMessage(player, "Enter a number (1-8) in chat."))
+
+        return messages
+
+    def check_player_position(self, player: Player):
+        """  Check if player is inside a tile and activate the effect. """
+        self.tile_map.check_player_position(player) 
+
+
+    def clear_board(self):
+        # remove all squares from 10,10 to 12,12.
+        for obj, coord in self.placed_objects:
+            self.remove_from_grid(obj, coord)
