@@ -6,6 +6,7 @@ from message import GridMessage
 from funfest.fest_message import *
 
 SOUND_FILEPATHS = [
+<<<<<<< Updated upstream
     "fest/arp1.wav", "fest/arp1.wav", "fest/arp1.wav", "fest/arp1.wav",
     "fest/arp1.wav",
     "fest/backing_track.wav",
@@ -19,6 +20,21 @@ SOUND_FILEPATHS = [
     "fest/idkwhatthisis1.wav",
     "fest/drum1.wav",
     "fest/synth1.wav",
+=======
+    "sound/fest/i1.wav", "sound/fest/i2.wav", "sound/fest/i3.wav", "sound/fest/i4.wav",
+    "sound/fest/arp1.wav",
+    "sound/fest/backing_track.wav",
+    "sound/fest/arp1.wav",
+    "sound/fest/clarinet.wav",
+    "sound/fest/drum1.wav",
+    "sound/fest/drums2.wav",
+    "sound/fest/drums3.wav",
+    "sound/fest/guitar1.wav",
+    "sound/fest/harp1.wav",
+    "sound/fest/idkwhatthisis1.wav",
+    "sound/fest/drum1.wav",
+    "sound/fest/synth1.wav",
+>>>>>>> Stashed changes
 ]
 
 class FlyweightTile:
@@ -39,7 +55,11 @@ class FlyweightTile:
             instance.bottom_right = bottom_right
             instance.sound_path = sound_path 
             instance.is_number_sequence_tile = is_number_sequence_tile
+<<<<<<< Updated upstream
             instance.stored_sequence = [] if is_number_sequence_tile else None
+=======
+            instance.stored_sequence = [8,8,4,4] if is_number_sequence_tile else None
+>>>>>>> Stashed changes
             cls._instances[key] = instance  # Store the instance
         else:
             # Return the existing instance
@@ -74,6 +94,7 @@ class TileMap:
         self.tile_size = tile_size
         self.generate_tiles(start_y, start_x)
         self.current_tile_for_player: dict[str, FlyweightTile | None] = {}
+<<<<<<< Updated upstream
         self.observers = []
     def add_observer(self, callback):
         self.observers.append(callback)
@@ -83,22 +104,35 @@ class TileMap:
         for observer in self.observers:
             observer(tile)
 
+=======
+>>>>>>> Stashed changes
     def generate_tiles(self, start_y: int, start_x: int):
         """ Generates a 4x4 grid of abstract tiles and assigns a unique ID (1-16) to each tile. """
         tile_id = 1  # Unique ID for each 4x4 tile
         sound_filepaths = [
             "", "", "", "",
             "resources/sound/fest/arp1.wav",
+<<<<<<< Updated upstream
             "resources/sound/fest/yeah.wav",
             "resources/sound/fest/awful.wav",
             "resources/sound/fest/clarinet.wav",
             "resources/sound/fest/replacement.wav",
+=======
+            "resources/sound/fest/backing_track.wav",
+            "resources/sound/fest/chorus.wav",
+            "resources/sound/fest/clarinet.wav",
+            "resources/sound/fest/drum1.wav",
+>>>>>>> Stashed changes
             "resources/sound/fest/drums2.wav",
             "resources/sound/fest/drums3.wav",
             "resources/sound/fest/guitar1.wav",
             "resources/sound/fest/harp1.wav",
             "resources/sound/fest/idkwhatthisis1.wav",
+<<<<<<< Updated upstream
             "resources/sound/fest/rtm.wav",
+=======
+            "resources/sound/fest/drum4s.wav",
+>>>>>>> Stashed changes
             "resources/sound/fest/synth1.wav",
         ]
 
@@ -106,7 +140,11 @@ class TileMap:
             for col in range(4):  
                 top_left = (start_y + row * self.tile_size, start_x + col * self.tile_size)
                 bottom_right = (top_left[0] + self.tile_size - 1, top_left[1] + self.tile_size - 1)
+<<<<<<< Updated upstream
                 sound_path = sound_filepaths[tile_id - 1]
+=======
+                sound_path = SOUND_FILEPATHS[tile_id - 1]
+>>>>>>> Stashed changes
 
                 # Create or retrieve a FlyweightTile instance using the Flyweight pattern
                 is_number_sequence_tile = tile_id in {1, 2, 3, 4}
@@ -132,14 +170,24 @@ class TileMap:
                 matched_tile = flyweight_tile
         old_tile = self.current_tile_for_player.get(player.get_name(), None)
         if old_tile is not None and old_tile != matched_tile:
+<<<<<<< Updated upstream
+=======
+            
+>>>>>>> Stashed changes
             if old_tile.is_number_sequence_tile:
                 old_tile.stored_sequence = []  
                 print(f"DEBUG: Reset sequence for old tile {old_tile.tile_id} because player left it.")
 
        
         self.current_tile_for_player[player.get_name()] = matched_tile
+<<<<<<< Updated upstream
         if matched_tile is not None:
             self.notify_tile_activation(matched_tile)
 
 
         return tile_id, matched_tile,sound_path
+=======
+
+
+        return tile_id, matched_tile,sound_path
+>>>>>>> Stashed changes

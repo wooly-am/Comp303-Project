@@ -10,6 +10,7 @@ from tiles.map_objects import Computer
 from funfest.instrument_command import *
 from server_local import ChatBackend
 from queue import Queue
+from command import *
 
 DIRECTORY = [
     "/fest/backing_track.wav"
@@ -20,7 +21,22 @@ roomWidth = 36
 roomHeight = 40
 original_parse_message = ChatBackend._ChatBackend__parse_message
 
+<<<<<<< Updated upstream
 #@override
+=======
+class loop_clear(ChatCommand):
+    def execute(self, command_text: str, context: "Map", player: "HumanPlayer") -> list[Message]:
+        if isinstance(context, FunFestHouse):
+            context.active_tiles.clear()
+        else: print("what")
+
+    @classmethod
+    def matches(cls, command_text: str) -> bool:
+        return command_text == "clear"
+
+
+
+>>>>>>> Stashed changes
 def funfest_parse_message(self, data_d, player):
     """Custom parse method to read user’s chat input for number-sequence tiles."""
     print("FunFestHouse override parse_message:", data_d)
@@ -31,10 +47,10 @@ def funfest_parse_message(self, data_d, player):
         if 'text' in data_d:
             chat_text = data_d['text']
 
-            
+
             tile_id, tile, _ = None, None, None
             current_room = player.get_current_room()
-            if hasattr(current_room, 'tile_map'): 
+            if hasattr(current_room, 'tile_map'):
                 result = current_room.tile_map.check_player_position(player)
                 if result:
                     tile_id, tile, _ = result
@@ -48,17 +64,20 @@ def funfest_parse_message(self, data_d, player):
                         messages.append(ServerMessage(player, f"You entered {number}; tile {tile_id} sequence: {tile.get_stored_sequence()}"))
                     else:
                         messages.append(ServerMessage(player, "Invalid. Enter 1-8."))
+                elif chat_text == "clear":
+                    self.active_loops.clear()
+
                 else:
                     ## instrument command will handle if the text is not a digit, checking for commands like clear, etc
                     messages.append(InstrumentCommand().execute(player, self, data_d))
                     #messages.append(ServerMessage(player, "Enter a valid number (1-8)."))
             else:
-                
+
                 original_parse_message(self, data_d, player)
-                return  
+                return
 
         else:
-            
+
             original_parse_message(self, data_d, player)
             return
 
@@ -78,7 +97,7 @@ class FunFestHouse(Map):
             size=(roomHeight, roomWidth),
             entry_point=Coord(30, 10),
             background_tile_image='cobblestone',
-            chat_commands=[],
+            chat_commands=[loop_clear],
             
             
         )
@@ -118,7 +137,11 @@ class FunFestHouse(Map):
         for player in self.get_clients():
             if player in self.player_load_queue:
                 for path in SOUND_FILEPATHS:
+<<<<<<< Updated upstream
                     messages.append(SoundMessage(player, path, 0.0))
+=======
+                    messages.append(SoundMessage(player, path[6:], 0.0))
+>>>>>>> Stashed changes
 
                 messages.append(self.active_tiles.add_recipient(player))
                 self.player_load_queue.remove(player)
@@ -153,11 +176,19 @@ class FunFestHouse(Map):
 
         if tile_id is not None:
             messages.append(ServerMessage(player, f"DEBUG: Player {player.get_name()} is in Tile {tile_id}"))
+<<<<<<< Updated upstream
             self.active_tiles.add(LoopMessage(tile.get_sound_filepath(), tile.get_tile_id()))
 
+=======
+>>>>>>> Stashed changes
 
             if tile.is_number_sequence_tile:
+                print("AAAAAAAAAAAAAA")
                 messages.append(ServerMessage(player, "Enter a number (1-8) in chat."))
+                self.active_tiles.add(InstrumentMessage(tile.get_sound_filepath(), tile.get_tile_id(), "".join(str(item) for item in tile.get_stored_sequence()) ))
+            else:
+                self.active_tiles.add(LoopMessage(tile.get_sound_filepath(), tile.get_tile_id()))
+
 
         return messages
 
