@@ -21,9 +21,6 @@ roomWidth = 36
 roomHeight = 40
 original_parse_message = ChatBackend._ChatBackend__parse_message
 
-<<<<<<< Updated upstream
-#@override
-=======
 class loop_clear(ChatCommand):
     def execute(self, command_text: str, context: "Map", player: "HumanPlayer") -> list[Message]:
         if isinstance(context, FunFestHouse):
@@ -36,7 +33,6 @@ class loop_clear(ChatCommand):
 
 
 
->>>>>>> Stashed changes
 def funfest_parse_message(self, data_d, player):
     """Custom parse method to read user’s chat input for number-sequence tiles."""
     print("FunFestHouse override parse_message:", data_d)
@@ -55,7 +51,7 @@ def funfest_parse_message(self, data_d, player):
                 if result:
                     tile_id, tile, _ = result
 
-            
+
             if tile and tile.is_number_sequence_tile:
                 if chat_text.isdigit():
                     number = int(chat_text)
@@ -105,26 +101,28 @@ class FunFestHouse(Map):
         self.tile_map=TileMap(10,10,4)
         self.active_tiles = FestMessage(self)
         ChatBackend._ChatBackend__parse_message = funfest_parse_message
-        self.tile_map.add_observer(self.on_tile_activated)
+
         self.player_load_queue = []
     
-    def on_tile_activated(self, tile):
-        if tile.sound_path and tile.get_tile_id() >= 1:
-            self.active_tiles.add(LoopMessage(tile.get_sound_filepath(), tile.get_tile_id()))
 
     def get_objects(self) -> list[tuple[MapObject, Coord]]:
         objects: list[tuple[MapObject, Coord]] = []
         door = Door('int_entrance', linked_room="Trottier Town")
         objects.append((door, Coord(roomHeight - 1, (roomWidth // 2) - 1)))
 
-        background = MapObject('tile/background/black', False, 5)
+        #background = MapObject('tile/background/black', False, 0)
+        for i in range(6):
+            for j in range(8):
+                path = str("tile/background/festgrid/row-"+ str(i+1) +"-column-" + str(j+1))
+                objects.append((MapObject(path, True, 7), Coord((4*(i)),(4*(j))) ))
         for x in range(roomWidth):
             for y in range(roomHeight):
                 if not ((((roomWidth // 2) - 2 <= x <= (roomWidth // 2) + 1) and (roomWidth - 10 <= y <= roomHeight)) or ((10 <= x <= roomWidth - 11) and (10 <= y <= roomWidth - 11))):
-                    objects.append((background, Coord(y,x)))
+                    #objects.append((background, Coord(y,x)))
+                    pass
 
         ## background imagery:
-        objects.append((MapObject("fest-foreground", True, 0), Coord(23,3)))
+        objects.append((MapObject("fest-foreground", True, 100), Coord(23,3)))
 
         return objects
 
@@ -137,11 +135,7 @@ class FunFestHouse(Map):
         for player in self.get_clients():
             if player in self.player_load_queue:
                 for path in SOUND_FILEPATHS:
-<<<<<<< Updated upstream
-                    messages.append(SoundMessage(player, path, 0.0))
-=======
                     messages.append(SoundMessage(player, path[6:], 0.0))
->>>>>>> Stashed changes
 
                 messages.append(self.active_tiles.add_recipient(player))
                 self.player_load_queue.remove(player)
@@ -162,7 +156,7 @@ class FunFestHouse(Map):
         Map.add_player(self, player, entry_point)
 
 
-    #@override
+ 
     def move(self, player: "Player", direction_s: str) -> list[Message]:
         """
         Move the player, check tile type, and handle number-sequence input.
@@ -176,14 +170,8 @@ class FunFestHouse(Map):
 
         if tile_id is not None:
             messages.append(ServerMessage(player, f"DEBUG: Player {player.get_name()} is in Tile {tile_id}"))
-<<<<<<< Updated upstream
-            self.active_tiles.add(LoopMessage(tile.get_sound_filepath(), tile.get_tile_id()))
-
-=======
->>>>>>> Stashed changes
 
             if tile.is_number_sequence_tile:
-                print("AAAAAAAAAAAAAA")
                 messages.append(ServerMessage(player, "Enter a number (1-8) in chat."))
                 self.active_tiles.add(InstrumentMessage(tile.get_sound_filepath(), tile.get_tile_id(), "".join(str(item) for item in tile.get_stored_sequence()) ))
             else:
