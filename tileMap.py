@@ -1,8 +1,8 @@
-from coord import Coord
-from Player import Player
+from .coord import Coord
+from .Player import Player
 from tiles.base import MapObject
-from message import Message
-from message import GridMessage
+from .message import Message
+from .message import GridMessage
 from funfest.fest_message import *
 
 SOUND_FILEPATHS = [
