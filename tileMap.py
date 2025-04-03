@@ -1,4 +1,4 @@
-from .coord import Coord
+from coord import Coord
 from .Player import Player
 from tiles.base import MapObject
 from .message import Message
