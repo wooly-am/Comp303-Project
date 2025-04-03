@@ -1,4 +1,4 @@
-from message import *
+from .message import *
 
 FRAMERATE = 44100
 SAMPLE_LENGTH = FRAMERATE * 2
