@@ -1,15 +1,15 @@
-from coord import Rect
+from .coord import Rect
 from funfest.fest_message import *
 from maps.base import Map
 from tiles.base import MapObject
 from tiles.map_objects import *
 from maps.map_helper import fill_area
 from tileMap import TileMap, SOUND_FILEPATHS,FlyweightTile
-from Player import Player, HumanPlayer
+from .Player import Player, HumanPlayer
 from tiles.map_objects import Computer
 from funfest.instrument_command import *
-from server_local import ChatBackend
-from queue import Queue
+from .server_local import ChatBackend
+from .queue import Queue
 
 
 DIRECTORY = [
