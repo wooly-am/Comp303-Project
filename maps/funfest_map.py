@@ -116,7 +116,7 @@ class FunFestHouse(Map):
 
     def get_objects(self) -> list[tuple[MapObject, Coord]]:
         objects: list[tuple[MapObject, Coord]] = []
-        door = Door('int_entrance', linked_room="Trottier Town")
+        door = Door('int_entrance', linked_room="Trottier Town", is_main_entrance=True)
         objects.append((door, Coord(roomHeight - 1, (roomWidth // 2) - 1)))
 
         background = MapObject('tile/background/cobblestone', True, 10)
