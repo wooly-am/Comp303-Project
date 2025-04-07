@@ -12,7 +12,7 @@ SAMPLE_LENGTH = FRAMERATE * 2
 class FestSubMessage(ABC):
 
 
-    @abstractmethod
+    ##@abstractmethod
     def get_id(self):
         pass
 
