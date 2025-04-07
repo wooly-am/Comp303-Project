@@ -1,5 +1,6 @@
 from .imports import *
-from .objects.funfest.tileMap import *
+from .funfest.tileMap import *
+from .funfest.fest_message import *
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
