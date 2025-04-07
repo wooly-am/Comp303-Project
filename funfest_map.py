@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from message import ServerMessage, SoundMessage
     from Player import Player
     from server_local import ChatBackend
+    print("Typecheck true")
 
 
 DIRECTORY = [
@@ -22,6 +23,8 @@ DIRECTORY = [
 # multiple of 2!!:
 roomWidth = 36
 roomHeight = 40
+if ChatBackend:
+    print("exists")
 original_parse_message = ChatBackend._ChatBackend__parse_message
 
 
