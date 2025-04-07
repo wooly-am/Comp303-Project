@@ -1,15 +1,11 @@
-from .coord import Rect
-from funfest.fest_message import *
-from maps.base import Map
-from tiles.base import MapObject
-from tiles.map_objects import *
-from maps.map_helper import fill_area
-from tileMap import TileMap, SOUND_FILEPATHS,FlyweightTile
-from .Player import Player, HumanPlayer
-from tiles.map_objects import Computer
-from funfest.instrument_command import *
-from .server_local import ChatBackend
-from .queue import Queue
+from .imports import *
+from .objects.funfest.tileMap import *
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from tiles.map_objects import *
+    from Player import Player
+    from server_local import ChatBackend
 
 
 DIRECTORY = [
@@ -120,18 +116,20 @@ class FunFestHouse(Map):
 
     def get_objects(self) -> list[tuple[MapObject, Coord]]:
         objects: list[tuple[MapObject, Coord]] = []
-        door = Door('int_entrance', linked_room="Trottier Town", is_main_entrance=True)
+        door = Door('int_entrance', linked_room="Trottier Town")
         objects.append((door, Coord(roomHeight - 1, (roomWidth // 2) - 1)))
 
-        background = MapObject('tile/background/cobblestone', True, 1)
-        for i in range(7):
-            for j in range(8):
-                path = str("tile/background/festgrid/row-"+ str(i+1) +"-column-" + str(j+1))
-                objects.append((MapObject(path, True, 7), Coord((4*(i)),(4*(j))) ))
+        background = MapObject('tile/background/cobblestone', True, 10)
         for x in range(roomWidth):
             for y in range(roomHeight):
                 if (((roomWidth // 2) - 2 <= x <= (roomWidth // 2) + 1) and (roomWidth - 10 <= y <= roomHeight)) or ((10 <= x <= roomWidth - 11) and (10 <= y <= roomWidth - 11)):
-                    objects.append((background, Coord(y,x)))
+                    if y > 25:
+                        objects.append((background, Coord(y,x)))
+
+        for i in range(6):
+            for j in range(7):
+                path = str("tile/background/festgrid/row-"+ str(i+1) +"-column-" + str(j+1))
+                objects.append((MapObject(path, True, 7), Coord( ((4*i)+2), ((4*j)+2) )))
 
         ## background imagery:
         objects.append((MapObject("fest-foreground", True, 0), Coord(23,3)))

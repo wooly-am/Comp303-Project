@@ -1,9 +1,8 @@
-from 303MUD.coord import Coord
-from .Player import Player
-from tiles.base import MapObject
-from .message import Message
-from .message import GridMessage
-from funfest.fest_message import *
+from .imports import *
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from Player import Player
 
 SOUND_FILEPATHS = [
     "sound/fest/i1.wav", "sound/fest/i2.wav", "sound/fest/i3.wav", "sound/fest/i4.wav",
@@ -12,13 +11,13 @@ SOUND_FILEPATHS = [
     "sound/fest/awful.wav",
     "sound/fest/clarinet.wav",
     "sound/fest/replacement.wav",
+    "sound/fest/bass.wav",
+    "sound/fest/guitar1.wav",
+    "sound/fest/guitar2.wav",
+    "sound/fest/drum1.wav",
     "sound/fest/drums2.wav",
     "sound/fest/drums3.wav",
-    "sound/fest/guitar1.wav",
-    "sound/fest/harp1.wav",
-    "sound/fest/idkwhatthisis1.wav",
-    "sound/fest/rtm.wav",
-    "sound/fest/synth1.wav",
+    "sound/fest/drums4s.wav",
     "sound/fest/backing_track.wav"
 ]
 
