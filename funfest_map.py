@@ -1,10 +1,15 @@
 from .imports import *
-from .funfest.tileMap import *
-from .funfest.fest_message import *
+from .funfest.tileMap import TileMap, FlyweightTile, SOUND_FILEPATHS
+from .funfest.fest_message import FestMessage, InstrumentMessage, LoopMessage
+from .funfest.instrument_command import InstrumentCommand
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from tiles.map_objects import *
+    from coord import Coord
+    from message import Message
+    from maps.base import Map
+    from tiles.map_objects import Door, Background, MapObject
+    from message import ServerMessage, SoundMessage
     from Player import Player
     from server_local import ChatBackend
 
