@@ -11,8 +11,6 @@ SAMPLE_LENGTH = FRAMERATE * 2
 
 class FestSubMessage(ABC):
 
-
-    ##@abstractmethod
     def get_id(self):
         pass
 
@@ -76,7 +74,7 @@ class FestMessage(Message, SenderInterface):
         ## add more to aid debugging
         return str(len(self.__children))
 
-    def get_name(self) -> Literal['***SERVER***']:
+    def get_name(self):
         return "***SERVER***"
 
     def _get_data(self) -> dict[str, str]:
