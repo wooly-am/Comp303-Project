@@ -1,7 +1,11 @@
-from Player import HumanPlayer
-from command import ChatCommand
-from maps.base import Map
-from message import Message
+from .imports import *
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from Player import HumanPlayer
+    from command import ChatCommand
+    from maps.base import Map
+    from message import Message
 
 
 class InstrumentCommand(ChatCommand):
