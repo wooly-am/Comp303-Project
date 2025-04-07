@@ -1,9 +1,9 @@
 from ..imports import *
-from typing import TYPE_CHECKING
+from abc import ABC
 
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from message import *
-    from abc import ABC
 
 FRAMERATE = 44100
 SAMPLE_LENGTH = FRAMERATE * 2
