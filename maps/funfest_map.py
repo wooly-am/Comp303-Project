@@ -86,7 +86,7 @@ class FunFestHouse(Map):
             name="FunFestHouse",
             description="Project test..",
             size=(roomHeight, roomWidth),
-            entry_point=Coord(30, 10),
+            entry_point=Coord(roomHeight - 1, (roomWidth // 2) - 1),
             background_tile_image='black',
             chat_commands=[],
 
