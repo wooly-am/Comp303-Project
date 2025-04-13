@@ -60,26 +60,23 @@ class FunFestHouse(Map):
     def on_sequence_update(self, tile):
         self.active_tiles.add(InstrumentMessage(tile.get_sound_filepath(), tile.get_tile_id(), "".join(str(item) for item in tile.get_stored_sequence())))
 
-
     def get_objects(self) -> list[tuple[MapObject, Coord]]:
         objects: list[tuple[MapObject, Coord]] = []
         door = Door('int_entrance', linked_room="Trottier Town", is_main_entrance=True)
         objects.append((door, Coord(roomHeight - 1, (roomWidth // 2) - 1)))
 
-        background = MapObject('tile/background/cobblestone', True, 10)
+        background = MapObject('tile/background/black', False, 0)
         for x in range(roomWidth):
             for y in range(roomHeight):
-                if (((roomWidth // 2) - 2 <= x <= (roomWidth // 2) + 1) and (roomWidth - 10 <= y <= roomHeight)) or ((10 <= x <= roomWidth - 11) and (10 <= y <= roomWidth - 11)):
-                    if y > 25:
-                        objects.append((background, Coord(y,x)))
+                if not (((roomWidth // 2) - 2 <= x <= (roomWidth // 2) + 1) and (roomWidth - 10 <= y <= roomHeight)) or ((10 <= x <= roomWidth - 11) and (10 <= y <= roomWidth - 11)):
+                    objects.append((background, Coord(y,x)))
 
         for i in range(6):
             for j in range(7):
                 path = str("tile/background/festgrid/row-"+ str(i+1) +"-column-" + str(j+1))
-                objects.append((MapObject(path, True, 7), Coord( ((4*i)+2), ((4*j)+2) )))
-
-        ## background imagery:
-        objects.append((MapObject("fest-foreground", True, 0), Coord(23,3)))
+                objects.append((MapObject(path, True, 1), Coord( ((4*i)+2), ((4*j)+2) )))
+                if i == 1:
+                    objects.append((MapObject(f"fest-foreground-{j+1}", True, 10), Coord(23, (4*j) + 3)))
 
         return objects
 
