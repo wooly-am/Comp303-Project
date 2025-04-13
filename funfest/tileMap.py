@@ -40,7 +40,7 @@ class FlyweightTile:
             instance.bottom_right = bottom_right
             instance.sound_path = sound_path
             instance.is_number_sequence_tile = is_number_sequence_tile
-            instance.stored_sequence = [4,4,8,8] if is_number_sequence_tile else None
+            instance.stored_sequence = [] if is_number_sequence_tile else None
             cls._instances[key] = instance  # Store the instance
         else:
             # Return the existing instance
@@ -69,7 +69,11 @@ class FlyweightTile:
         return self.stored_sequence if self.is_number_sequence_tile else None
 
     def clear_stored_sequence(self):
-        pass
+        """" Emptys the sequence"""
+        if self.is_number_sequence_tile:
+            self.stored_sequence = []
+        else: raise Warning("Tile is not a number sequence.")
+
 
 
 class TileMap:

@@ -1,7 +1,7 @@
 from .imports import *
 from .funfest.tileMap import TileMap, FlyweightTile, SOUND_FILEPATHS
 from .funfest.fest_message import FestMessage, InstrumentMessage, LoopMessage
-from .funfest.instrument_command import InstrumentCommand
+from .funfest.instrument_command import ClearSequence, AddToSequence
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -23,66 +23,6 @@ DIRECTORY = [
 # multiple of 2!!:
 roomWidth = 36
 roomHeight = 40
-if ChatBackend:
-    print("exists")
-original_parse_message = ChatBackend._ChatBackend__parse_message
-
-
-#@override
-def funfest_parse_message(self, data_d, player):
-    """Custom parse method to read user’s chat input for number-sequence tiles."""
-    print("FunFestHouse override parse_message:", data_d)
-
-
-    messages = []
-
-
-    try:
-        if 'text' in data_d:
-            chat_text = data_d['text']
-
-
-
-            tile_id, tile, _ = None, None, None
-            current_room = player.get_current_room()
-            if hasattr(current_room, 'tile_map'):
-                result = current_room.tile_map.check_player_position(player)
-                if result:
-                    tile_id, tile, _ = result
-
-
-
-            if tile and tile.is_number_sequence_tile:
-                if chat_text.isdigit():
-                    number = int(chat_text)
-                    if 1 <= number <= 8:
-                        tile.store_number(number)
-                        messages.append(ServerMessage(player, f"You entered {number}; tile {tile_id} sequence: {tile.get_stored_sequence()}"))
-
-                    else:
-                        messages.append(ServerMessage(player, "Invalid. Enter 1-8."))
-                else:
-                    ## instrument command will handle if the text is not a digit, checking for commands like clear, etc
-                    messages.append(InstrumentCommand().execute(player, self, data_d))
-                    #messages.append(ServerMessage(player, "Enter a valid number (1-8)."))
-            else:
-
-                original_parse_message(self, data_d, player)
-                return
-
-
-        else:
-
-            original_parse_message(self, data_d, player)
-            return
-
-
-    except Exception as e:
-        messages = [ServerMessage(player, f"Error in funfest_parse_message: {str(e)}")]
-
-
-    self._ChatBackend__send_messages_to_recipients(messages)
-
 
 class FunFestHouse(Map):
 
@@ -97,14 +37,12 @@ class FunFestHouse(Map):
             size=(roomHeight, roomWidth),
             entry_point=Coord(roomHeight - 1, (roomWidth // 2) - 1),
             background_tile_image='black',
-            chat_commands=[],
-
+            chat_commands=[ClearSequence, AddToSequence],
 
         )
         self.placed_objects = []
         self.tile_map=TileMap(10,10,4)
         self.active_tiles = FestMessage(self)
-        ChatBackend._ChatBackend__parse_message = funfest_parse_message
         self.tile_map.add_observer(self)
         self.player_load_queue = []
         self.observers = []
@@ -126,7 +64,7 @@ class FunFestHouse(Map):
     def get_objects(self) -> list[tuple[MapObject, Coord]]:
         objects: list[tuple[MapObject, Coord]] = []
         door = Door('int_entrance', linked_room="Trottier Town", is_main_entrance=True)
-        objects.append((door, Coord(14, 7)))
+        objects.append((door, Coord(roomHeight - 1, (roomWidth // 2) - 1)))
 
         background = MapObject('tile/background/cobblestone', True, 10)
         for x in range(roomWidth):
@@ -144,8 +82,6 @@ class FunFestHouse(Map):
         objects.append((MapObject("fest-foreground", True, 0), Coord(23,3)))
 
         return objects
-
-
 
     def update(self):
         messages = []
