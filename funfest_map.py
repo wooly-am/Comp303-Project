@@ -74,6 +74,8 @@ class FunFestHouse(Map):
                 else:
                     objects.append((background, Coord(y,x)))
 
+        objects.append((MapObject("message", False, 10), Coord(26, 30)))
+
         for i in range(6):
             for j in range(7):
                 path = str("tile/background/festgrid/row-"+ str(i+1) +"-column-" + str(j+1))
