@@ -74,7 +74,7 @@ class FunFestHouse(Map):
                 else:
                     objects.append((background, Coord(y,x)))
 
-        objects.append((MapObject("message", False, 10), Coord(26, 30)))
+        objects.append((MapObject("message", False, 10), Coord(28, 23)))
 
         for i in range(6):
             for j in range(7):
