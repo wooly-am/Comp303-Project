@@ -66,9 +66,12 @@ class FunFestHouse(Map):
         objects.append((door, Coord(roomHeight - 1, (roomWidth // 2) - 1)))
 
         background = MapObject('tile/background/black', False, 0)
+        floor = MapObject('tile/background/cobblestone', True, 0)
         for x in range(roomWidth):
             for y in range(roomHeight):
-                if not (((roomWidth // 2) - 2 <= x <= (roomWidth // 2) + 1) and (roomWidth - 10 <= y <= roomHeight)) or ((10 <= x <= roomWidth - 11) and (10 <= y <= roomWidth - 11)):
+                if (((roomWidth // 2) - 2 <= x <= (roomWidth // 2) + 1) and (roomWidth - 10 <= y <= roomHeight)) or ((10 <= x <= roomWidth - 11) and (10 <= y <= roomWidth - 11)):
+                    objects.append((floor, Coord(y,x)))
+                else:
                     objects.append((background, Coord(y,x)))
 
         for i in range(6):
