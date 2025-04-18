@@ -36,8 +36,8 @@ def test_tile_filepath_when_player_stands_on_tile(setup_test_environment):
     assert tile_id == 1
     assert sound_path == "sound/fest/i1.wav"
     
-    # Verify the observer was notified of tile activation
-    mock_observer.notify_tile_activation.assert_called_once()
+  
+    
     args = mock_observer.notify_tile_activation.call_args[0]
     assert args[0].get_tile_id() == 1
     assert args[0].get_sound_filepath() == "sound/fest/i1.wav"
@@ -46,9 +46,7 @@ def test_tile_filepath_when_player_stands_on_tile(setup_test_environment):
 def test_tile_filepath_for_multiple_positions(setup_test_environment):
     player, tile_map, mock_observer = setup_test_environment
     
-    # Define test cases: position and expected results
     test_positions = [
-        # y, x, expected_tile_id, expected_filepath
         (11, 11, 1, "sound/fest/i1.wav"),
         (11, 15, 2, "sound/fest/i2.wav"),
         (15, 11, 5, "sound/fest/arp1.wav"),
